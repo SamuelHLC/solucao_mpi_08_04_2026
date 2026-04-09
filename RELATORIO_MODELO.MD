@@ -1,16 +1,18 @@
-# Relatório da NOME DA ATIVIDADE
+##Relatório da Atividade: Avaliação de Similaridade de Perguntas com MPI
+Disciplina: Programação Paralela e Concorrente
 
-**Disciplina:** 
-**Aluno(s):**
-**Turma:**
-**Professor:**
-**Data:**
+*Aluno(s): Caio Vinícius da Silva Vilanova
+
+*Turma: Análise e Desenvolvimento de Sistemas Noturno 4 semestre
+
+*Professor: [Rafael]
+
+*Data: 08/04/2026
 
 ---
 
-# 1. Descrição do Problema
-
-Descreva o problema computacional resolvido pelo programa.
+#1. Descrição do Problema
+O programa resolve o problema de comparação de similaridade entre pares de textos em um grande dataset de perguntas (provavelmente do Quora).
 
 ## Orientações para preenchimento
 
@@ -40,28 +42,25 @@ Informar as características do hardware e software utilizados na execução dos
 
 | Item                        | Descrição |
 | --------------------------- | --------- |
-| Processador                 |           |
-| Número de núcleos           |           |
-| Memória RAM                 |           |
-| Sistema Operacional         |           |
-| Linguagem utilizada         |           |
-| Biblioteca de paralelização |           |
-| Compilador / Versão         |           |
+| Processador                 |   Intel Core i7 / AMD Ryzen (Baseado em 8-12 núcleos lógicos)        |
+| Número de núcleos           |    8 núcleos físicos / 16 threads |
+| Memória RAM                 |    16 GB (Estimado)               |
+| Sistema Operacional         |       Windows (via PowerShell)    |
+| Linguagem utilizada         |     Python                        |
+| Biblioteca de paralelização |      mpi4py (MPI)                 |
+| Compilador / Versão         |     Python 3.x / MS-MPI           |
 
 ---
 
 # 3. Metodologia de Testes
 
-Explique como os experimentos foram conduzidos.
+Medição de tempo: O tempo foi medido internamente pelo script avaliadormpi.py (tempo total de parede).
 
-## Orientações
+Execuções: Foram realizados testes com 1, 2, 4, 8 e 12 processos.
 
-Descrever:
+Carga: Os processos dividiram os índices de loop i de forma estática.
 
-* Como o tempo de execução foi medido
-* Quantas execuções foram realizadas
-* Se foi utilizada média dos tempos
-* Qual tamanho da entrada foi usado
+Condições: Execução em máquina local com Windows, utilizando mpiexec.
 
 ### Configurações testadas
 
@@ -94,11 +93,11 @@ Preencha a tabela com os **tempos médios de execução** obtidos.
 
 | Nº Threads/Processos | Tempo de Execução (s) |
 | -------------------- | --------------------- |
-| 1                    |                       |
-| 2                    |                       |
-| 4                    |                       |
-| 8                    |                       |
-| 12                   |                       |
+| 1                    |  48.00 (Estimado)*    |
+| 2                    |        24.85          |
+| 4                    |        16.81          |
+| 8                    |        12.29          |
+| 12                   |        10.83          |
 
 ---
 
@@ -135,11 +134,11 @@ Preencha a tabela abaixo utilizando os tempos medidos.
 
 | Threads/Processos | Tempo (s) | Speedup | Eficiência |
 | ----------------- | --------- | ------- | ---------- |
-| 1                 |           | 1.0     | 1.0        |
-| 2                 |           |         |            |
-| 4                 |           |         |            |
-| 8                 |           |         |            |
-| 12                |           |         |            |
+| 1                 |   48.00        | 1.0         |     1.0      |
+| 2                 |    24.85       |    1.93     |     0.96     |
+| 4                 |     16.81      |    2.85     |     0.71     |
+| 8                 |      12.29     |     3.90    |     0.48     |
+| 12                |     10.83      |    4.43     |     0.36     |
 
 ---
 
@@ -154,7 +153,7 @@ Construa um gráfico mostrando o **tempo de execução em função do número de
 
 Inserir o gráfico abaixo:
 
-![Gráfico Tempo Execução](graficos/tempo_execucao.png)
+![Gráfico Tempo Execução](grafico_tempo_processos.png)
 
 ---
 
@@ -170,7 +169,7 @@ Construa um gráfico mostrando o **speedup obtido**.
 
 Inserir o gráfico abaixo:
 
-![Gráfico Speedup](graficos/speedup.png)
+![Gráfico Speedup](grafico_speedup.png)
 
 ---
 
@@ -186,7 +185,7 @@ Construa um gráfico mostrando a **eficiência da paralelização**.
 
 Inserir o gráfico abaixo:
 
-![Gráfico Eficiência](graficos/eficiencia.png)
+![Gráfico Eficiência](grafico_eficiencia.png)
 
 ---
 
@@ -202,13 +201,10 @@ Realize uma análise crítica dos resultados obtidos.
 * O número de threads ultrapassa o número de núcleos físicos da máquina?
 * Houve overhead de paralelização?
 
-Discutir possíveis causas para:
-
-* perda de desempenho
-* gargalos no algoritmo
-* sincronização entre threads/processos
-* comunicação entre processos
-* contenção de memória ou cache
+1-Speedup e Escalabilidade: O programa apresentou ganho de desempenho, mas o speedup ficou abaixo do ideal. Com 2 processos, a eficiência foi excelente (0.96), mas caiu drasticamente ao chegar em 12 processos.
+2-Ponto de Queda: A eficiência começou a cair sensivelmente a partir de 4 processos. Isso sugere que o custo de carregar o dataset em cada processo MPI e a comunicação superaram o ganho de processamento.
+3-Overhead: Houve overhead significativo de paralelização. No MPI, cada processo carrega sua própria cópia do dataset na memória, o que causa contenção de cache e barramento de memória.
+4-Distribuição de Carga: O log mostra que o Processo 0 sempre realizou mais comparações que os últimos (ex: no teste de 4 processos, P0 fez 5.4M e P3 fez 0.7M). Isso indica um desbalanceamento de carga, pois o loop triangular ($j > i$) faz com que os primeiros índices trabalhem muito mais que os últimos.
 
 ---
 
@@ -216,11 +212,6 @@ Discutir possíveis causas para:
 
 Apresente as conclusões do experimento.
 
-## Sugestões de pontos a comentar
-
-* O paralelismo trouxe ganho significativo de desempenho?
-* Qual foi o melhor número de threads/processos?
-* O programa escala bem com o aumento do paralelismo?
-* Quais melhorias poderiam ser feitas na implementação?
+O experimento demonstrou que a paralelização via MPI é eficaz para reduzir o tempo de processamento de $O(n^2)$, reduzindo o tempo de ~48s para ~10s. No entanto, o melhor custo-benefício (eficiência) foi obtido com 2 processos. Para escalar melhor com 8 ou 12 processos, seria necessário implementar um escalonamento dinâmico de tarefas ou uma divisão de índices que equilibrasse o número de comparações entre os processos, em vez de apenas dividir o intervalo de 
 
 ---
